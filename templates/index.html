@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      #examLink {
+        margin-top: 20px;
+        display: none;
+      }
+    </style>
+    <script>
+      function onSubmit() {
+        const studentIDField = document.getElementById('studentID');
+        const studentID = studentIDField.value.trim();
+        const submitButton = document.querySelector('input[type="submit"]');
+
+        if (!studentID) {
+          alert("Student ID is required.");
+          return;
+        }
+
+        submitButton.disabled = true;
+
+        fetch('/process-form', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ studentID }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            submitButton.disabled = false;
+            if (data.status === 'success') {
+              const linkElement = document.getElementById('examLink');
+              linkElement.innerHTML =
+                `<p>Part I: <a href="${data.formURL}" target="_blank">Open Exam</a></p>` +
+                `<p>Part II: <a href="${data.partIILink}" target="_blank">Open Part II</a></p>`;
+              linkElement.style.display = 'block';
+
+              // Clear input fields
+              studentIDField.value = '';
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch(error => {
+            submitButton.disabled = false;
+            alert('Error: ' + error.message);
+          });
+      }
+    </script>
+  </head>
+  <body>
+    <h2>CS101 Final Exam Access</h2>
+    <form onsubmit="onSubmit(); return false;">
+      <label for="studentID">Enter your Student ID:</label><br>
+      <input type="text" id="studentID" name="studentID" required><br><br>
+      <input type="submit" value="Access Exam">
+    </form>
+    <div id="examLink"></div>
+  </body>
+</html>
