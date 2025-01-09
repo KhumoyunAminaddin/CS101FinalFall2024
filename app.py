@@ -60,14 +60,23 @@ def authorized():
     token = google.authorize_access_token()
     # Fetch user information using the correct API base URL
     user_info = google.get('userinfo').json()
+    examdata = get_student_info(user_info['email'])
     session['email'] = user_info['email']  # Save email in session
+    session['form_url'] = examdata['form_url']
+    session['partIILink'] = examdata['part_ii_link']
+    session['student_name'] = examdata['student_name']
+
     return redirect(url_for('protected'))
 
 
 @app.route('/logout')
 def logout():
     session.pop('email', None)
+    session.pop('form_url', None)
+    session.pop('partIILink', None)
+    session.pop('student_name', None)
     return redirect(url_for('home'))
+
 
 @app.route('/protected')
 @login_required
@@ -75,31 +84,13 @@ def protected():
     email = session.get('email')
     if not email:
         return redirect(url_for('login'))
-    return render_template('index.html')
+    return render_template('index.html',
+                           form_url=session['form_url'],
+                           partIILink=session['partIILink'],
+                           student_name=session['student_name'])
 
-@app.route('/process-form', methods=['POST'])
-def process_form():
-    data = request.get_json()
-    student_id = data.get('studentID', '').strip()
-    email = session.get('email', '')
 
-    if not student_id:
-        return jsonify({"status": "error", "message": "Student ID is required."}), 400
-
-    try:
-        student_info = get_student_info(student_id)
-        if not student_info or student_info['email'].lower() != email.lower():
-            return jsonify({"status": "error", "message": "Access denied."}), 403
-
-        return jsonify({
-            "status": "success",
-            "formURL": student_info['form_url'],
-            "partIILink": student_info['part_ii_link'],
-        })
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-def get_student_info(student_id):
+def get_student_info(email):
     sheet = service.spreadsheets()
     students_data = sheet.values().get(
         spreadsheetId=STUDENT_LIST_SHEET_ID,
@@ -107,25 +98,15 @@ def get_student_info(student_id):
     ).execute().get('values', [])
 
     for row in students_data[1:]:
-        if row[0] == student_id:
+        if str(row[2]) == str(email):
             return {
-                "email": row[2],
-                "form_url": get_form_url(student_id),
-                "part_ii_link": row[5] if len(row) > 5 else None,
+                "id": row[0],
+                "form_url": row[3],
+                "part_ii_link": row[5],
+                "student_name": row[1]
             }
     return None
 
-def get_form_url(student_id):
-    sheet = service.spreadsheets()
-    form_data = sheet.values().get(
-        spreadsheetId=FORM_LINKS_SHEET_ID,
-        range='Links'
-    ).execute().get('values', [])
-
-    for row in form_data[1:]:
-        if row[0] == student_id:
-            return row[2]
-    return None
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

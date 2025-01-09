@@ -1,63 +1,109 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <style>
-      #examLink {
-        margin-top: 20px;
-        display: none;
-      }
-    </style>
-    <script>
-      function onSubmit() {
-        const studentIDField = document.getElementById('studentID');
-        const studentID = studentIDField.value.trim();
-        const submitButton = document.querySelector('input[type="submit"]');
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Final re-exam on CS101</title>
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <!-- Custom Styles -->
+  <style>
+    body {
+      background-color: #f8fafc;
+      color: #1d3557; /* Rich blue-gray for text */
+      font-family: 'Arial', sans-serif;
+    }
+    .main-container {
+      max-width: 800px;
+      margin: auto;
+      padding: 2rem;
+    }
+    .card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .btn-primary {
+      background-color: #1d3557; /* Dark blue */
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #457b9d; /* Lighter blue */
+    }
+    .btn-success {
+      background-color: #2a9d8f; /* Greenish tone */
+      border: none;
+    }
+    .btn-success:hover {
+      background-color: #34d399; /* Vibrant green */
+    }
+    .section-title {
+      color: #457b9d; /* Accent blue for section titles */
+    }
+  </style>
+</head>
+<body>
+  <!-- Main container -->
+  <div class="main-container">
+    <!-- Heading -->
+    <div class="text-center mb-5">
+      <h1 class="fw-bold">Re-exam on CS101 for {{ student_name }}</h1>
+      <p class="text-muted">May the force be with you and good luck.</p>
+    </div>
 
-        if (!studentID) {
-          alert("Student ID is required.");
-          return;
-        }
+    <!-- PART I: Google Form Link -->
+    <div class="card mb-4">
+      <div class="card-body text-center">
+        <h2 class="section-title">PART I</h2>
+        <p class="text-muted">
+          Please fill out the Google Form for Part I.
+        </p>
+        <a
+          href="{{ form_url }}"
+          class="btn btn-primary px-4 py-2"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open Part I Form
+        </a>
+      </div>
+    </div>
 
-        submitButton.disabled = true;
+    <!-- PART II: PDF Link -->
+    <div class="card">
+      <div class="card-body text-center">
+        <h2 class="section-title">PART II</h2>
+        <p class="text-muted">
+          Download or view the PDF for Part II.
+        </p>
+        <a
+          href="{{ partIILink }}"
+          class="btn btn-success px-4 py-2"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open Part II PDF
+        </a>
+        <p class="text-muted">
+          Submit your code to <a href="https://www.gradescope.com" target="_blank">gradescope.com</a> up to 5 attempts.
+        </p>
+      </div>
 
-        fetch('/process-form', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ studentID }),
-        })
-          .then(response => response.json())
-          .then(data => {
-            submitButton.disabled = false;
-            if (data.status === 'success') {
-              const linkElement = document.getElementById('examLink');
-              linkElement.innerHTML =
-                `<p>Part I: <a href="${data.formURL}" target="_blank">Open Exam</a></p>` +
-                `<p>Part II: <a href="${data.partIILink}" target="_blank">Open Part II</a></p>`;
-              linkElement.style.display = 'block';
+        <a
+          href="/logout"
+          class="btn btn-secondary px-4 py-2"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Logout
+        </a>
+    </div>
+  </div>
 
-              // Clear input fields
-              studentIDField.value = '';
-            } else {
-              alert(data.message);
-            }
-          })
-          .catch(error => {
-            submitButton.disabled = false;
-            alert('Error: ' + error.message);
-          });
-      }
-    </script>
-  </head>
-  <body>
-    <h2>CS101 Final Exam Access</h2>
-    <form onsubmit="onSubmit(); return false;">
-      <label for="studentID">Enter your Student ID:</label><br>
-      <input type="text" id="studentID" name="studentID" required><br><br>
-      <input type="submit" value="Access Exam">
-    </form>
-    <div id="examLink"></div>
-  </body>
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
